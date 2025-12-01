@@ -193,15 +193,33 @@ function AboutScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>About This App</Text>
+
       <Text style={styles.text}>
-        (Later we will put Shaheer&apos;s full name and student ID here.)
+        Developer: Shaheer Ansari
       </Text>
       <Text style={styles.text}>
-        This app converts amounts between currencies using a live exchange rate API.
+        Student ID: 101396295
       </Text>
+      <Text style={styles.text}>
+        Course: COMP3074 – Mobile Application Development
+      </Text>
+      <Text style={styles.text}>
+        Assignment: A2 – Currency Converter App
+      </Text>
+     <Text style={[styles.text, { marginTop: 16 }]}>
+       With this app, you can quickly convert money from one currency to another
+       using live exchange rates powered by FreecurrencyAPI.
+     </Text>
+     <Text style={styles.text}>
+       Just enter the amount and the three-letter currency codes, and the app will
+       check everything for you, fetch the latest rate, and show both the exchange
+       rate and your converted amount.
+     </Text>
+
     </View>
   );
 }
+
 
 export default function App() {
   return (
