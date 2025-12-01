@@ -8,20 +8,28 @@ import {
   Button,
   StyleSheet,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
+const FREECURRENCY_API_KEY = 'fca_live_4zD7feaWtrcqtd9P5Dol8nhARlpSo4xxDX4zG5Ci';
+
 function MainScreen({ navigation }: any) {
   const [baseCurrency, setBaseCurrency] = React.useState('CAD');
   const [destinationCurrency, setDestinationCurrency] = React.useState('USD');
-  const [amount, setAmount] = React.useState('1');
+  const [amount, setAmount] = React.useState('100');
+
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = React.useState<string | null>(null); // to confirm success in M2
+
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [exchangeRate, setExchangeRate] = React.useState<number | null>(null);
+  const [convertedAmount, setConvertedAmount] = React.useState<number | null>(
+    null,
+  );
 
   const validateInputs = (): boolean => {
     setErrorMessage(null);
-    setStatusMessage(null);
 
     const currencyRegex = /^[A-Z]{3}$/;
 
@@ -54,12 +62,56 @@ function MainScreen({ navigation }: any) {
     return true;
   };
 
-  const handleConvertPress = () => {
-    if (!validateInputs()) {
-      return;
+  const performConversion = async () => {
+    if (!validateInputs()) return;
+
+    setErrorMessage(null);
+    setExchangeRate(null);
+    setConvertedAmount(null);
+
+    setIsLoading(true);
+
+    try {
+      const base = baseCurrency.trim().toUpperCase();
+      const dest = destinationCurrency.trim().toUpperCase();
+
+      const url =
+        `https://api.freecurrencyapi.com/v1/latest` +
+        `?apikey=${FREECURRENCY_API_KEY}` +
+        `&base_currency=${base}` +
+        `&currencies=${dest}`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}`);
+      }
+
+      const json = await response.json();
+      const rateRaw = json?.data?.[dest];
+
+      if (typeof rateRaw !== 'number') {
+        throw new Error('Rate not found in API response.');
+      }
+
+      setExchangeRate(rateRaw);
+
+      const numericAmount = parseFloat(amount);
+      const converted = numericAmount * rateRaw;
+      setConvertedAmount(converted);
+    } catch (err) {
+      console.error('Conversion error:', err);
+      setErrorMessage(
+        'Failed to fetch exchange rate. Please check your API key, currencies, or network connection.',
+      );
+    } finally {
+      setIsLoading(false);
     }
-    // M2: no API yet – just confirm validation passed
-    setStatusMessage('Inputs look valid. (API call will be added next.)');
+  };
+
+  const handleConvertPress = () => {
+    // 🔁 Now calls the real API, not just a status message
+    performConversion();
   };
 
   return (
@@ -92,19 +144,39 @@ function MainScreen({ navigation }: any) {
         value={amount}
         onChangeText={setAmount}
         keyboardType="numeric"
-        placeholder="1"
+        placeholder="100"
       />
 
       <View style={styles.buttonContainer}>
-        <Button title="Convert" onPress={handleConvertPress} />
+        <Button
+          title={isLoading ? 'Converting...' : 'Convert'}
+          onPress={handleConvertPress}
+          disabled={isLoading}
+        />
       </View>
+
+      {isLoading && (
+        <View style={styles.loadingRow}>
+          <ActivityIndicator size="small" />
+          <Text style={styles.loadingText}>Converting...</Text>
+        </View>
+      )}
 
       {errorMessage && (
         <Text style={styles.errorText}>{errorMessage}</Text>
       )}
 
-      {statusMessage && !errorMessage && (
-        <Text style={styles.statusText}>{statusMessage}</Text>
+      {!errorMessage && exchangeRate !== null && convertedAmount !== null && (
+        <View style={styles.resultBox}>
+          <Text style={styles.resultText}>
+            {amount} {baseCurrency.toUpperCase()} ={' '}
+            {convertedAmount.toFixed(2)} {destinationCurrency.toUpperCase()}
+          </Text>
+          <Text style={styles.resultSubText}>
+            Exchange rate: 1 {baseCurrency.toUpperCase()} ={' '}
+            {exchangeRate.toFixed(4)} {destinationCurrency.toUpperCase()}
+          </Text>
+        </View>
       )}
 
       <View style={styles.aboutButtonContainer}>
@@ -185,14 +257,34 @@ const styles = StyleSheet.create({
   aboutButtonContainer: {
     marginTop: 24,
   },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  loadingText: {
+    marginLeft: 8,
+    fontSize: 14,
+  },
   errorText: {
     color: 'red',
     marginTop: 12,
     fontSize: 14,
   },
-  statusText: {
-    color: 'green',
-    marginTop: 12,
+  resultBox: {
+    marginTop: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    backgroundColor: '#f9f9f9',
+  },
+  resultText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  resultSubText: {
     fontSize: 14,
   },
 });
