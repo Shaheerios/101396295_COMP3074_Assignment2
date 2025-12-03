@@ -19,6 +19,17 @@ const Stack = createNativeStackNavigator();
 // 🔑 Shaheer's FreecurrencyAPI key
 const FREECURRENCY_API_KEY = 'fca_live_4zD7feaWtrcqtd9P5Dol8nhARlpSo4xxDX4zG5Ci';
 
+// Type for recent conversion history entries
+type ConversionRecord = {
+  id: number;
+  base: string;
+  dest: string;
+  amount: number;
+  converted: number;
+  rate: number;
+  timestamp: string;
+};
+
 // Reusable primary button
 function PrimaryButton({
   title,
@@ -72,6 +83,11 @@ function MainScreen({ navigation }: any) {
   const [convertedAmount, setConvertedAmount] = React.useState<number | null>(
     null,
   );
+
+  // Keep track of the last few successful conversions
+  const [recentConversions, setRecentConversions] = React.useState<
+    ConversionRecord[]
+  >([]);
 
   const validateInputs = (): boolean => {
     setErrorMessage(null);
@@ -144,6 +160,23 @@ function MainScreen({ navigation }: any) {
       const numericAmount = parseFloat(amount);
       const converted = numericAmount * rateRaw;
       setConvertedAmount(converted);
+
+      // Save to recent history (keep only last 5)
+      const now = new Date();
+      const record: ConversionRecord = {
+        id: now.getTime(),
+        base,
+        dest,
+        amount: numericAmount,
+        converted,
+        rate: rateRaw,
+        timestamp: now.toLocaleTimeString(),
+      };
+
+      setRecentConversions(prev => {
+        const next = [record, ...prev];
+        return next.slice(0, 5); // keep at most 5 entries
+      });
     } catch (err) {
       console.error('Conversion error:', err);
       setErrorMessage(
@@ -239,6 +272,24 @@ function MainScreen({ navigation }: any) {
                 {exchangeRate.toFixed(4)}{' '}
                 {destinationCurrency.toUpperCase()}
               </Text>
+            </View>
+          )}
+
+          {recentConversions.length > 0 && (
+            <View style={styles.historyBox}>
+              <Text style={styles.historyTitle}>Recent Conversions</Text>
+              {recentConversions.map(item => (
+                <View key={item.id} style={styles.historyRow}>
+                  <Text style={styles.historyMain}>
+                    {item.amount} {item.base} →{' '}
+                    {item.converted.toFixed(2)} {item.dest}
+                  </Text>
+                  <Text style={styles.historySub}>
+                    1 {item.base} = {item.rate.toFixed(4)} {item.dest} ·{' '}
+                    {item.timestamp}
+                  </Text>
+                </View>
+              ))}
             </View>
           )}
 
@@ -435,5 +486,31 @@ const styles = StyleSheet.create({
   resultSub: {
     fontSize: 14,
     color: '#34516F',
+  },
+  historyBox: {
+    marginTop: 18,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#F6F7FB',
+    borderWidth: 1,
+    borderColor: '#E0E3EE',
+  },
+  historyTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#2C2F3A',
+  },
+  historyRow: {
+    marginBottom: 8,
+  },
+  historyMain: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#123055',
+  },
+  historySub: {
+    fontSize: 12,
+    color: '#6C727F',
   },
 });
