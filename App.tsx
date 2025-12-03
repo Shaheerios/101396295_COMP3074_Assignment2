@@ -1,4 +1,3 @@
-// App.tsx
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -89,6 +88,11 @@ function MainScreen({ navigation }: any) {
     ConversionRecord[]
   >([]);
 
+  // Simple detection of which field caused the validation error
+  const isBaseInvalid = !!errorMessage?.startsWith('Base currency');
+  const isDestInvalid = !!errorMessage?.startsWith('Destination currency');
+  const isAmountInvalid = !!errorMessage?.startsWith('Amount');
+
   const validateInputs = (): boolean => {
     setErrorMessage(null);
 
@@ -142,13 +146,36 @@ function MainScreen({ navigation }: any) {
         `&base_currency=${base}` +
         `&currencies=${dest}`;
 
+      console.log('Requesting:', url);
+
       const response = await fetch(url);
+      const rawBody = await response.text();
+      console.log(
+        'FreeCurrencyAPI status:',
+        response.status,
+        'body:',
+        rawBody,
+      );
 
       if (!response.ok) {
+        // Try to parse error JSON to get a better message
+        try {
+          const errorJson = JSON.parse(rawBody);
+          const apiMessage =
+            errorJson?.message ||
+            errorJson?.error ||
+            (Array.isArray(errorJson?.errors) ? errorJson.errors[0] : null);
+
+          if (apiMessage) {
+            throw new Error(`HTTP ${response.status}: ${apiMessage}`);
+          }
+        } catch {
+          // ignore JSON parse errors, fall back to generic
+        }
         throw new Error(`HTTP error ${response.status}`);
       }
 
-      const json = await response.json();
+      const json = JSON.parse(rawBody);
       const rateRaw = json?.data?.[dest];
 
       if (typeof rateRaw !== 'number') {
@@ -175,13 +202,32 @@ function MainScreen({ navigation }: any) {
 
       setRecentConversions(prev => {
         const next = [record, ...prev];
-        return next.slice(0, 5); // keep at most 5 entries
+        return next.slice(0, 5);
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Conversion error:', err);
-      setErrorMessage(
-        'Failed to fetch exchange rate. Please check your API key, currencies, or network connection.',
-      );
+      const msg = String(err?.message || '');
+
+      if (msg.includes('401') || msg.toLowerCase().includes('unauthorized')) {
+        setErrorMessage(
+          'The API key was rejected (401 Unauthorized). Please double-check the FreeCurrencyAPI key.',
+        );
+      } else if (
+        msg.includes('422') ||
+        msg.toLowerCase().includes('unprocessable')
+      ) {
+        setErrorMessage(
+          'The currency API rejected this request (422). This can happen if the base/destination currency is not allowed for your plan or if the request format changed.',
+        );
+      } else if (msg.includes('429')) {
+        setErrorMessage(
+          'Rate limit reached on FreeCurrencyAPI (429). Please wait a bit and try again.',
+        );
+      } else {
+        setErrorMessage(
+          'Failed to fetch exchange rate. Please check your API key, currencies, or network connection.',
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -189,6 +235,17 @@ function MainScreen({ navigation }: any) {
 
   const handleConvertPress = () => {
     performConversion();
+  };
+
+  const handleClear = () => {
+    setBaseCurrency('');
+    setDestinationCurrency('');
+    setAmount('');
+    setExchangeRate(null);
+    setConvertedAmount(null);
+    setErrorMessage(null);
+    // If you want to also clear history, uncomment:
+    // setRecentConversions([]);
   };
 
   return (
@@ -208,7 +265,7 @@ function MainScreen({ navigation }: any) {
 
           <Text style={styles.label}>Base Currency Code (e.g., CAD)</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, isBaseInvalid && styles.inputError]}
             value={baseCurrency}
             onChangeText={text => setBaseCurrency(text.toUpperCase())}
             autoCapitalize="characters"
@@ -216,12 +273,17 @@ function MainScreen({ navigation }: any) {
             placeholder="CAD"
             placeholderTextColor="#B0B3BA"
           />
+          {isBaseInvalid && (
+            <Text style={styles.fieldError}>
+              Use a 3-letter code like CAD.
+            </Text>
+          )}
 
           <Text style={styles.label}>
             Destination Currency Code (e.g., USD)
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, isDestInvalid && styles.inputError]}
             value={destinationCurrency}
             onChangeText={text => setDestinationCurrency(text.toUpperCase())}
             autoCapitalize="characters"
@@ -229,22 +291,42 @@ function MainScreen({ navigation }: any) {
             placeholder="USD"
             placeholderTextColor="#B0B3BA"
           />
+          {isDestInvalid && (
+            <Text style={styles.fieldError}>
+              Use a 3-letter code like USD.
+            </Text>
+          )}
 
           <Text style={styles.label}>Amount</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, isAmountInvalid && styles.inputError]}
             value={amount}
             onChangeText={setAmount}
             keyboardType="decimal-pad"
             placeholder="100"
             placeholderTextColor="#B0B3BA"
           />
+          {isAmountInvalid && (
+            <Text style={styles.fieldError}>
+              Enter a positive number greater than 0.
+            </Text>
+          )}
 
           <PrimaryButton
             title={isLoading ? 'Converting…' : 'Convert'}
             onPress={handleConvertPress}
             disabled={isLoading}
           />
+
+          <View style={styles.clearButtonRow}>
+            <TouchableOpacity
+              style={styles.clearButton}
+              onPress={handleClear}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.clearButtonText}>Clear Fields</Text>
+            </TouchableOpacity>
+          </View>
 
           {isLoading && (
             <View style={styles.loadingRow}>
@@ -253,12 +335,15 @@ function MainScreen({ navigation }: any) {
             </View>
           )}
 
-          {errorMessage && (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorTitle}>Error</Text>
-              <Text style={styles.errorText}>{errorMessage}</Text>
-            </View>
-          )}
+          {errorMessage &&
+            !isBaseInvalid &&
+            !isDestInvalid &&
+            !isAmountInvalid && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorTitle}>Error</Text>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            )}
 
           {!errorMessage && exchangeRate !== null && convertedAmount !== null && (
             <View style={styles.resultBox}>
@@ -412,6 +497,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#FAFBFF',
   },
+  inputError: {
+    borderColor: '#B00020',
+    backgroundColor: '#FDEAEA',
+  },
+  fieldError: {
+    fontSize: 12,
+    color: '#B00020',
+    marginTop: 2,
+    marginBottom: 4,
+  },
   primaryButton: {
     marginTop: 20,
     borderRadius: 999,
@@ -423,6 +518,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  clearButtonRow: {
+    marginTop: 10,
+    alignItems: 'flex-end',
+  },
+  clearButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: '#EFF2FB',
+  },
+  clearButtonText: {
+    fontSize: 13,
+    color: '#1E88E5',
+    fontWeight: '500',
   },
   secondaryButton: {
     marginTop: 18,
