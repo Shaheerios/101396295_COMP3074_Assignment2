@@ -454,7 +454,7 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F1F3F8',
+    backgroundColor: '#E1F5FE',
   },
   scrollContent: {
     flexGrow: 1,
