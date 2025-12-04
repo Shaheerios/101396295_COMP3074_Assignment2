@@ -266,11 +266,7 @@ function MainScreen({ navigation }: any) {
       >
         <View style={styles.card}>
           <Text style={styles.title}>Currency Converter</Text>
-          <Text
-          style={{ color: 'red', textAlign: 'center', marginBottom: 8 }}
-          >
-          DEBUG TEXT
-          </Text>
+          
           <Text style={styles.subtitle}>
             Enter the amount and currency codes to see the latest conversion.
           </Text>
