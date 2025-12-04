@@ -18,6 +18,8 @@ const Stack = createNativeStackNavigator();
 // 🔑 Shaheer's FreecurrencyAPI key
 const FREECURRENCY_API_KEY = 'fca_live_4zD7feaWtrcqtd9P5Dol8nhARlpSo4xxDX4zG5Ci';
 
+const APP_VERSION = '1.0.0';
+
 // Type for recent conversion history entries
 type ConversionRecord = {
   id: number;
@@ -403,12 +405,17 @@ function AboutScreen() {
 
           <Text style={styles.text}>Developer: Shaheer Ansari & Jinah Ahn</Text>
           <Text style={styles.text}>Student ID: 101396295 & 100902591</Text>
+          <Text style={styles.text}>App Version: {APP_VERSION}</Text>
           <Text style={styles.text}>
             Course: COMP3074 – Mobile Application Development
           </Text>
           <Text style={styles.text}>
             Assignment: A2 – Currency Converter App
           </Text>
+          
+          <Text style={styles.text}>App Version: {APP_VERSION}</Text>
+
+        
 
           <Text style={[styles.text, { marginTop: 16 }]}>
             With this app, you can quickly convert money from one currency to
@@ -456,12 +463,12 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 12,
+    padding: 24,
+    borderRadius: 16,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     elevation: 4,
   },
   title: {
