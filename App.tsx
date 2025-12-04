@@ -250,6 +250,11 @@ function MainScreen({ navigation }: any) {
     // setRecentConversions([]);
   };
 
+  // Added - Recent Conversions 
+  const handleClearHistory = () => {
+    setRecentConversions([]);
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.screen}
@@ -320,6 +325,7 @@ function MainScreen({ navigation }: any) {
             disabled={isLoading}
           />
 
+          {/* NEW: Clear fields + clear history buttons in one row */}
           <View style={styles.clearButtonRow}>
             <TouchableOpacity
               style={styles.clearButton}
@@ -328,6 +334,17 @@ function MainScreen({ navigation }: any) {
             >
               <Text style={styles.clearButtonText}>Clear Fields</Text>
             </TouchableOpacity>
+
+            {/* NEW: Show Clear History only when there is some history */}
+            {recentConversions.length > 0 && (
+              <TouchableOpacity
+                style={[styles.clearButton, { marginLeft: 8 }]}
+                onPress={handleClearHistory}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.clearButtonText}>Clear History</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {isLoading && (
@@ -364,7 +381,9 @@ function MainScreen({ navigation }: any) {
 
           {recentConversions.length > 0 && (
             <View style={styles.historyBox}>
+              {/* NEW: Only title here; clear button moved next to Clear Fields */}
               <Text style={styles.historyTitle}>Recent Conversions</Text>
+
               {recentConversions.map(item => (
                 <View key={item.id} style={styles.historyRow}>
                   <Text style={styles.historyMain}>
@@ -415,8 +434,6 @@ function AboutScreen() {
           
           <Text style={styles.text}>App Version: {APP_VERSION}</Text>
 
-        
-
           <Text style={[styles.text, { marginTop: 16 }]}>
             With this app, you can quickly convert money from one currency to
             another using live exchange rates powered by FreecurrencyAPI.
@@ -429,7 +446,6 @@ function AboutScreen() {
           <Text style={[styles.text, { textAlign: 'center', marginTop: 16 }]}>
             Thank you for using this app!
           </Text>
-
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -531,9 +547,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // NEW: row layout so Clear Fields & Clear History can sit side-by-side
   clearButtonRow: {
     marginTop: 10,
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   clearButton: {
     paddingHorizontal: 12,
@@ -630,10 +649,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#123055',
-  },
-  historySub: {
-    fontSize: 12,
-    color: '#6C727F',
   },
   historySub: {
     fontSize: 12,
