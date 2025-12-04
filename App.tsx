@@ -18,6 +18,8 @@ const Stack = createNativeStackNavigator();
 // 🔑 Shaheer's FreecurrencyAPI key
 const FREECURRENCY_API_KEY = 'fca_live_4zD7feaWtrcqtd9P5Dol8nhARlpSo4xxDX4zG5Ci';
 
+const APP_VERSION = '1.0.0';
+
 // Type for recent conversion history entries
 type ConversionRecord = {
   id: number;
@@ -248,6 +250,11 @@ function MainScreen({ navigation }: any) {
     // setRecentConversions([]);
   };
 
+  // Added - Recent Conversions 
+  const handleClearHistory = () => {
+    setRecentConversions([]);
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.screen}
@@ -259,6 +266,7 @@ function MainScreen({ navigation }: any) {
       >
         <View style={styles.card}>
           <Text style={styles.title}>Currency Converter</Text>
+          
           <Text style={styles.subtitle}>
             Enter the amount and currency codes to see the latest conversion.
           </Text>
@@ -270,7 +278,7 @@ function MainScreen({ navigation }: any) {
             onChangeText={text => setBaseCurrency(text.toUpperCase())}
             autoCapitalize="characters"
             maxLength={3}
-            placeholder="CAD"
+            placeholder="e.g.,CAD" // change this part 
             placeholderTextColor="#B0B3BA"
           />
           {isBaseInvalid && (
@@ -318,6 +326,7 @@ function MainScreen({ navigation }: any) {
             disabled={isLoading}
           />
 
+          {/* NEW: Clear fields + clear history buttons in one row */}
           <View style={styles.clearButtonRow}>
             <TouchableOpacity
               style={styles.clearButton}
@@ -326,6 +335,17 @@ function MainScreen({ navigation }: any) {
             >
               <Text style={styles.clearButtonText}>Clear Fields</Text>
             </TouchableOpacity>
+
+            {/* NEW: Show Clear History only when there is some history */}
+            {recentConversions.length > 0 && (
+              <TouchableOpacity
+                style={[styles.clearButton, { marginLeft: 8 }]}
+                onPress={handleClearHistory}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.clearButtonText}>Clear History</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {isLoading && (
@@ -362,7 +382,9 @@ function MainScreen({ navigation }: any) {
 
           {recentConversions.length > 0 && (
             <View style={styles.historyBox}>
+              {/* NEW: Only title here; clear button moved next to Clear Fields */}
               <Text style={styles.historyTitle}>Recent Conversions</Text>
+
               {recentConversions.map(item => (
                 <View key={item.id} style={styles.historyRow}>
                   <Text style={styles.historyMain}>
@@ -401,14 +423,17 @@ function AboutScreen() {
         <View style={styles.card}>
           <Text style={styles.title}>About This App</Text>
 
-          <Text style={styles.text}>Developer: Shaheer Ansari</Text>
-          <Text style={styles.text}>Student ID: 101396295</Text>
+          <Text style={styles.text}>Developer: Shaheer Ansari & Jinah Ahn</Text>
+          <Text style={styles.text}>Student ID: 101396295 & 100902591</Text>
+          
           <Text style={styles.text}>
             Course: COMP3074 – Mobile Application Development
           </Text>
           <Text style={styles.text}>
             Assignment: A2 – Currency Converter App
           </Text>
+          
+          <Text style={styles.text}>App Version: {APP_VERSION}</Text>
 
           <Text style={[styles.text, { marginTop: 16 }]}>
             With this app, you can quickly convert money from one currency to
@@ -418,6 +443,9 @@ function AboutScreen() {
             Just enter the amount and the three-letter currency codes, and the
             app will check everything for you, fetch the latest rate, and show
             both the exchange rate and your converted amount.
+          </Text>
+          <Text style={[styles.text, { textAlign: 'center', marginTop: 16 }]}>
+            Thank you for using this app!
           </Text>
         </View>
       </ScrollView>
@@ -447,7 +475,7 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F1F3F8',
+    backgroundColor: '#E1F5FE',
   },
   scrollContent: {
     flexGrow: 1,
@@ -456,13 +484,14 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 12,
+    padding: 24,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     elevation: 4,
+    marginVertical: 24,   // Added this part
   },
   title: {
     fontSize: 22,
@@ -519,9 +548,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // NEW: row layout so Clear Fields & Clear History can sit side-by-side
   clearButtonRow: {
     marginTop: 10,
-    alignItems: 'flex-end',
+    marginBottom: 12,   // NEW: add spacing for cleaner layout
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   clearButton: {
     paddingHorizontal: 12,
@@ -622,5 +655,10 @@ const styles = StyleSheet.create({
   historySub: {
     fontSize: 12,
     color: '#6C727F',
+  },
+  helperText: {
+    fontSize: 11,
+    color: '#6C727F',
+    marginBottom: 4,
   },
 });
