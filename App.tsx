@@ -551,6 +551,7 @@ const styles = StyleSheet.create({
   // NEW: row layout so Clear Fields & Clear History can sit side-by-side
   clearButtonRow: {
     marginTop: 10,
+    marginBottom: 12,   // NEW: add spacing for cleaner layout
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
