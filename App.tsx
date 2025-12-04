@@ -278,7 +278,7 @@ function MainScreen({ navigation }: any) {
             onChangeText={text => setBaseCurrency(text.toUpperCase())}
             autoCapitalize="characters"
             maxLength={3}
-            placeholder="CAD"
+            placeholder="e.g.,CAD" // change this part 
             placeholderTextColor="#B0B3BA"
           />
           {isBaseInvalid && (
