@@ -429,7 +429,7 @@ function AboutScreen() {
           <Text style={[styles.text, { textAlign: 'center', marginTop: 16 }]}>
             Thank you for using this app!
           </Text>
-          
+
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
