@@ -630,4 +630,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6C727F',
   },
+  historySub: {
+    fontSize: 12,
+    color: '#6C727F',
+  },
+  helperText: {
+    fontSize: 11,
+    color: '#6C727F',
+    marginBottom: 4,
+  },
 });
