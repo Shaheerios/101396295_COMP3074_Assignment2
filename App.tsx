@@ -426,6 +426,10 @@ function AboutScreen() {
             app will check everything for you, fetch the latest rate, and show
             both the exchange rate and your converted amount.
           </Text>
+          <Text style={[styles.text, { textAlign: 'center', marginTop: 16 }]}>
+            Thank you for using this app!
+          </Text>
+          
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
