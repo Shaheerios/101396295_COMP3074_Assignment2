@@ -405,7 +405,7 @@ function AboutScreen() {
 
           <Text style={styles.text}>Developer: Shaheer Ansari & Jinah Ahn</Text>
           <Text style={styles.text}>Student ID: 101396295 & 100902591</Text>
-          <Text style={styles.text}>App Version: {APP_VERSION}</Text>
+          
           <Text style={styles.text}>
             Course: COMP3074 – Mobile Application Development
           </Text>
