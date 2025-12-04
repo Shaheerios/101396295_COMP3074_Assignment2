@@ -470,6 +470,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
+    marginVertical: 24,   // Added this part
   },
   title: {
     fontSize: 22,
